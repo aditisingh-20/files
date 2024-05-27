@@ -1,0 +1,157 @@
+Entity Framework (EF) Core is a lightweight, extensible, open source and cross-platform version of the popular Entity Framework data access technology.
+
+EF Core can serve as an object-relational mapper (O/RM), which:
+1) Enables .NET developers to work with a database using .NET objects.
+2) Eliminates the need for most of the data-access code that typically needs to be written.
+
+EF Core supports many database engines.
+
+Entity Framework is an Object/Relational Mapping (O/RM) framework. It is an enhancement to ADO.NET that gives developers an automated mechanism for accessing & storing the data in the database.
+
+EF Core is intended to be used with .NET Core applications. However, it can also be used with standard .NET 4.5+ framework based applications.
+-----------------------------------------------------
+EF Core Development Approaches
+---------------------------------------------
+EF Core supports two development approaches 1) Code-First 2) Database-First.
+
+ EF Core mainly targets the code-first approach and provides little support for the database-first approach because the visual designer or wizard for DB model is not supported as of EF Core.
+
+In the code-first approach, EF Core API creates the database and tables using migration based on the conventions and configuration provided in your domain classes. This approach is useful in Domain Driven Design (DDD).
+
+In the database-first approach, EF Core API creates the domain and context classes based on your existing database using EF Core commands. This has limited support in EF Core as it does not support visual designer or wizard.
+-----------------------------------------------------------------------------------------
+Entity Framework Core uses a provider model to access many different databases. EF Core includes providers as NuGet packages which you need to install.If you have to install a database provider package from NuGet for the database you use in your project. For example, to use the MS SQL Server database, you need to install Microsoft.EntityframeworkCore.SqlServer package.
+
+Database	NuGet Package
+----------------------------------
+SQL Server	Microsoft.EntityFrameworkCore.SqlServer
+
+
+-------------------------------------------------------------------------
+DbContext in Entity Framework Core
+--------------------------------------------
+The DbContext class is an integral part of the Entity Framework. An instance of DbContext represents a session with the database which can be used to query and save instances of your entities to a database. DbContext is a combination of the Unit Of Work and Repository patterns.
+
+DbContext in EF Core allows us to perform the following tasks:
+1) Manage database connection
+2) Configure model & relationship
+3) Querying database
+4) Saving data to the database
+5) Configure change tracking
+6) Caching
+7) Transaction management
+
+To use DbContext in our application, we need to create a class that derives from DbContext.
+
+--------------------------------------------------------------------------------
+The model
+------------
+With EF Core, data access is performed using a model. A model is made up of entity classes (POCO - Plain Old CLR Object classes) and a context object that represents a session with the database. The context object allows querying and saving data. For more information, see Creating a Model.
+
+EF supports the following model development approaches:
+1) Generate a model from an existing database.
+2) Hand code a model to match the database.
+3) Once a model is created, use EF Migrations to create a database from the model. Migrations allow evolving the database as the model changes.
+-----------------------------------------------------------
+Querying
+-------------
+Instances of your entity classes are retrieved from the database using Language Integrated Query (LINQ)
+---------------------------------------------
+The DbSet<TEntity> type allows EF Core to query and save instances of the specified entity to the database. LINQ queries against a DbSet<TEntity> will be translated into queries against the database.
+
+Entities in the Entity Framework are mapped to the corresponding tables in the database. Entity Framework keeps track of these entities so that It can perform database CRUD (Create, Read, Update, Delete) operations automatically based on their object's status.
+
+Domain classes include the core functionality and business rules of the application, ensuring that the business logic is properly implemented.
+
+For Example : Student and Course classes are domain classes. To treat them as entities, we need to include them as DbSet<T> properties in the DbContext class of Entity Framework so that EF engine can track their status.
+-----------------------------------------------------------
+Migrations in Entity Framework Core
+-----------------------------------
+Migration is a way to keep the database schema in sync with the EF Core model by preserving data.
+EF Core migrations API will create or update the database schema based on the EF Core model. Whenever you change the domain classes, you need to run migration commands to keep the database schema up to date.
+
+EF Core migrations are a set of commands which you can execute in Package Manager Console or PowerShell or in .NET Core CLI (Command Line Interface).
+
+In Visual Studio, open NuGet Package Manager Console from Tools -> NuGet Package Manager -> Package Manager Console and enter the following command:
+   ------------------------------
+  | add-migration InitialCreate  |
+   ------------------------------
+Note : 
+1) Make sure that Default Project points to where your context and entities are, and then execute the command.
+2) The Add-Migration command does not create the database. It just creates the two snapshot files in the Migrations folder.
+
+To create a database, use the update-database command in the Package Manager Console, as shown below.
+   ------------------------------
+   |  update-database -verbose  |
+   ------------------------------
+
+The following executes the update-database command and creates the database, as shown below. The -verbose option shows the logs while creating the database. It creates a database with the name and location specified in the connection string in the UseSqlServer() method in Program.cs file.
+It creates a table for each entity. It also creates _EFMigrationHistory table that stores history of migrations applied overtime.
+-------------------------------------------------------------------------
+Apply Migrations for Modified Entities/Configurations
+--------------------------------------
+Suppose we add some new entities or modify an existing entities or changed any configuration, then we again need to execute the add-migration and update-database commands to apply changes to the database schema.
+=======================================================================
+Steps to implement EF Core Database First approach in ASP.NET MVC CORE application
+-----------------------------------------------
+
+1) Create a new ASP.NET CORE WEB APP (Model-View-Controller) project
+  with name Feb22_MVCCore_EFCore_DBFirst
+
+2) Go to Tools Menu -> Select Nuget Package Manager ->  Select Manage Nuget Packages For Solution
+
+3) Browse for Microsoft.EntityFrameworkCore.SqlServer package and Install the latest version in the current project.
+
+4) Browse for Microsoft.EntityFrameworkCore.Tools package and Install the latest version in the current project.
+
+5) Build the project.
+
+6) Go to Tools Menu -> Select Nuget Package Manager -> Select Package Manager Console
+
+NOTE: EF Core does not support visual designer for DB model and wizard to create the entity and context classes similar to EF 6. So, we need to do reverse engineering using the Scaffold-DbContext command. This reverse engineering command creates entity and context classes (by deriving DbContext) based on the schema of the existing database.
+
+7) Use Scaffold-DbContext to create a model based on your existing database.Type the following command in the Package Manager Console (Note : Make sure that Default Project points to where your context and entities are, and then execute the command.)
+
+Scaffold-DbContext "Server=.;Database=Deloitte_Jan22_Db;Trusted_Connection=True;TrustServerCertificate=true;"            Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Tables Cars
+
+In the above command, the first parameter is a connection string which includes three parts: Server, database name and security info. Here, Server=.; refers to local database server. Database=Deloitte_Jan22_Db; specifies the database name "Deloitte_Jan22_Db" for which we are going to create classes. Trusted_Connection=True; specifies the Windows authentication. It will use Windows credentials to connect to the SQL Server. The second parameter is the provider name. We use provider for the SQL Server, so it is Microsoft.EntityFrameworkCore.SqlServer. The -OutputDir parameter specifies the directory where we want to generate class for Table "Cars" in the Models folder.
+
+8) Check in the Solution Explorer -> Models folder. You will find Car.cs and DeloitteJan22DbContext.cs files created with respective classes.
+
+9) Open the DeloitteJan22DbContext.cs file and navigate to the location where the connection string is mentioned. It is not recommend to share  connection string directly in the code file. So remove the connection string and paste it in the appsettings.json file in the following way:
+ "ConnectionStrings": {
+   "DefaultConnection": "Server=.;Database=Deloitte_Jan22_Db;Trusted_Connection=True;TrustServerCertificate=true;"
+ }
+here, DefaultConnection is the name of the connection string. so, now go back to DeloitteJan22DbContext.cs file and replace the connection string with the connection string name as shown below:
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("DefaultConnection");
+
+10) save the connection string in the appsettings.json file as shown below
+ "ConnectionStrings": {
+   "DefaultConnection": "Server=.;Database=Deloitte_Jan22_Db;Trusted_Connection=True;TrustServerCertificate=true;"
+ }
+
+11) Configure the service in the program.cs file as shown below
+//read the connection string from the appsettings.json file
+string conStr = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<DeloitteJan22DbContext>(options =>
+             options.UseSqlServer(conStr));
+
+Now, create the controller class and views to perform the CRUD operations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
